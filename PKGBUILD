@@ -1,8 +1,8 @@
-# Maintainer: Ionut Biru <ionut@archlinux.org>
+# Maintainer: Ionut Biru <ibiru@archlinux.org>
 
 pkgname=openconnect
 pkgver=2.22
-pkgrel=1
+pkgrel=2
 pkgdesc="Open client for Cisco AnyConnect VPN"
 arch=('i686' 'x86_64')
 license=('GPL')
