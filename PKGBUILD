@@ -4,7 +4,7 @@
 
 pkgname=openconnect-git
 conflicts=('openconnect')
-pkgver=9.12.r199.g06afc42
+pkgver=9.12.r201.gf17fe20
 pkgrel=1
 epoch=1
 pkgdesc='Open client for Cisco AnyConnect VPN'
