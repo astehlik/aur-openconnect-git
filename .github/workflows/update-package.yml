@@ -57,10 +57,16 @@ jobs:
             echo "No update needed - hashes match"
           fi
 
-      - name: Build the package and update .SRCINFO
+      - name: Build the package
+        if: steps.check-update.outputs.update_needed == 'true'
+        uses: heyhusen/archlinux-package-action@v2
+
+      - name: Update the .SRCINFO file
         if: steps.check-update.outputs.update_needed == 'true'
         uses: heyhusen/archlinux-package-action@v2
         with:
+          flags: ''
+          namcap: false
           srcinfo: true
 
       - name: Update .last_build_commit file
