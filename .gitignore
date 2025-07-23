@@ -1,3 +1,5 @@
-*
-!.gitignore
-!PKGBUILD
+/node_modules
+/openconnect-git
+/pkg
+/src
+/*.zst

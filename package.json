@@ -1,0 +1,10 @@
+{
+  "type": "module",
+  "scripts": {
+    "lint": "prettier --check .",
+    "lint-fix": "prettier --write ."
+  },
+  "dependencies": {
+    "prettier": "^3.6.2"
+  }
+}
