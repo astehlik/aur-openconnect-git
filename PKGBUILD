@@ -17,7 +17,7 @@ depends=('libxml2' 'gnutls' 'libproxy' 'vpnc' 'krb5' 'lz4' 'pcsclite'
   libstoken.so libtss2-esys.so libtss2-mu.so libtss2-tctildr.so
   libxml2.so libproxy.so libhogweed.so libp11-kit.so libpskc.so
   libgssapi_krb5.so libpcsclite.so)
-makedepends=('intltool' 'python')
+makedepends=('git' 'intltool' 'python')
 checkdepends=('python-flask')
 optdepends=('python: tncc-wrapper')
 provides=("openconnect=${pkgver}" 'libopenconnect.so')
