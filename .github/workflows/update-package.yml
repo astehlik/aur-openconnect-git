@@ -1,0 +1,116 @@
+name: Update OpenConnect Package
+
+on:
+  # Nightly run a 03:23
+  schedule:
+    - cron: '23 3 * * *'
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  update-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Get latest GitLab commit hash
+        id: gitlab-hash
+        run: |
+          # Fetch the latest commit hash from GitLab API
+          LATEST_HASH=$(curl -s "https://gitlab.com/api/v4/projects/openconnect%2Fopenconnect/repository/commits/master" | jq -r '.id')
+          echo "latest_hash=$LATEST_HASH" >> $GITHUB_OUTPUT
+          echo "Latest GitLab hash: $LATEST_HASH"
+
+      - name: Get current build commit hash
+        id: current-hash
+        run: |
+          # Read current commit hash from .last_build_commit file
+          if [ -f ".last_build_commit" ]; then
+            CURRENT_HASH=$(cat .last_build_commit | tr -d '\n')
+            echo "current_hash=$CURRENT_HASH" >> $GITHUB_OUTPUT
+            echo "Current build commit hash: $CURRENT_HASH"
+          else
+            echo "current_hash=" >> $GITHUB_OUTPUT
+            echo "No .last_build_commit file found - treating as first build"
+          fi
+
+      - name: Compare hashes and decide if update is needed
+        id: check-update
+        run: |
+          LATEST_HASH="${{ steps.gitlab-hash.outputs.latest_hash }}"
+          CURRENT_HASH="${{ steps.current-hash.outputs.current_hash }}"
+
+          echo "Comparing hashes:"
+          echo "  Latest:  $LATEST_HASH"
+          echo "  Current: $CURRENT_HASH"
+
+          if [ "$LATEST_HASH" != "$CURRENT_HASH" ]; then
+            echo "update_needed=true" >> $GITHUB_OUTPUT
+            echo "Update needed - hashes differ"
+          else
+            echo "update_needed=false" >> $GITHUB_OUTPUT
+            echo "No update needed - hashes match"
+          fi
+
+      - name: Build the package and update .SRCINFO
+        if: steps.check-update.outputs.update_needed == 'true'
+        uses: heyhusen/archlinux-package-action@v2
+        with:
+          srcinfo: true
+
+      - name: Update .last_build_commit file
+        if: steps.check-update.outputs.update_needed == 'true'
+        run: |
+          # Write the latest commit hash to .last_build_commit file
+          LATEST_HASH="${{ steps.gitlab-hash.outputs.latest_hash }}"
+          echo "$LATEST_HASH" > .last_build_commit
+          echo "Updated .last_build_commit with hash: $LATEST_HASH"
+
+      - name: Check for changes
+        if: steps.check-update.outputs.update_needed == 'true'
+        id: check-changes
+        run: |
+          if git diff --quiet PKGBUILD .SRCINFO .last_build_commit; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes detected in PKGBUILD, .SRCINFO, or .last_build_commit"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in PKGBUILD, .SRCINFO, or .last_build_commit"
+            git diff --name-only PKGBUILD .SRCINFO .last_build_commit
+          fi
+
+      - name: Commit and push changes
+        if: steps.check-update.outputs.update_needed == 'true' && steps.check-changes.outputs.has_changes == 'true'
+        run: |
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # Add and commit changes
+          git add PKGBUILD .SRCINFO .last_build_commit
+
+          NEW_PKGVER=$(grep '^pkgver=' PKGBUILD | cut -d'=' -f2)
+          LATEST_HASH="${{ steps.gitlab-hash.outputs.latest_hash }}"
+          git commit -m "Update package to version $NEW_PKGVER (commit: ${LATEST_HASH:0:7})"
+
+          # Push changes
+          git push origin main
+
+          echo "Changes committed and pushed successfully"
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.check-update.outputs.update_needed }}" == "true" ]; then
+            if [ "${{ steps.check-changes.outputs.has_changes }}" == "true" ]; then
+              echo "✅ Package updated successfully"
+            else
+              echo "⚠️️  Build completed but no changes were made to PKGBUILD or .SRCINFO"
+            fi
+          else
+            echo "ℹ️️  No update needed - package is already up to date"
+          fi
