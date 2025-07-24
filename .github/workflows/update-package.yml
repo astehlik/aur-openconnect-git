@@ -1,9 +1,9 @@
 name: Update OpenConnect Package
 
 on:
-  # Nightly run a 03:23
+  # Weekly run a 03:23
   schedule:
-    - cron: '23 3 * * *'
+    - cron: '23 3 * * 3'
   # Allow manual triggering
   workflow_dispatch:
 
