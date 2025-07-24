@@ -29,15 +29,10 @@ jobs:
       - name: Get current build commit hash
         id: current-hash
         run: |
-          # Read current commit hash from .last_build_commit file
-          if [ -f ".last_build_commit" ]; then
-            CURRENT_HASH=$(cat .last_build_commit | tr -d '\n')
-            echo "current_hash=$CURRENT_HASH" >> $GITHUB_OUTPUT
-            echo "Current build commit hash: $CURRENT_HASH"
-          else
-            echo "current_hash=" >> $GITHUB_OUTPUT
-            echo "No .last_build_commit file found - treating as first build"
-          fi
+          # Read current commit hash from _commithash variable in PKGBUILD
+          CURRENT_HASH=$(grep '^_commithash=' PKGBUILD | cut -d'=' -f2)
+          echo "current_hash=$CURRENT_HASH" >> $GITHUB_OUTPUT
+          echo "Current build commit hash from PKGBUILD: $CURRENT_HASH"
 
       - name: Compare hashes and decide if update is needed
         id: check-update
@@ -57,6 +52,14 @@ jobs:
             echo "No update needed - hashes match"
           fi
 
+      - name: Update _commithash in PKGBUILD
+        if: steps.check-update.outputs.update_needed == 'true'
+        run: |
+          # Update the _commithash variable in PKGBUILD with the latest hash
+          LATEST_HASH="${{ steps.gitlab-hash.outputs.latest_hash }}"
+          sed -i "s/^_commithash=.*/_commithash=$LATEST_HASH/" PKGBUILD
+          echo "Updated _commithash in PKGBUILD to: $LATEST_HASH"
+
       - name: Build the package
         if: steps.check-update.outputs.update_needed == 'true'
         uses: heyhusen/archlinux-package-action@v2
@@ -69,25 +72,17 @@ jobs:
           namcap: false
           srcinfo: true
 
-      - name: Update .last_build_commit file
-        if: steps.check-update.outputs.update_needed == 'true'
-        run: |
-          # Write the latest commit hash to .last_build_commit file
-          LATEST_HASH="${{ steps.gitlab-hash.outputs.latest_hash }}"
-          echo "$LATEST_HASH" > .last_build_commit
-          echo "Updated .last_build_commit with hash: $LATEST_HASH"
-
       - name: Check for changes
         if: steps.check-update.outputs.update_needed == 'true'
         id: check-changes
         run: |
-          if git diff --quiet PKGBUILD .SRCINFO .last_build_commit; then
+          if git diff --quiet PKGBUILD .SRCINFO; then
             echo "has_changes=false" >> $GITHUB_OUTPUT
-            echo "No changes detected in PKGBUILD, .SRCINFO, or .last_build_commit"
+            echo "No changes detected in PKGBUILD or .SRCINFO"
           else
             echo "has_changes=true" >> $GITHUB_OUTPUT
-            echo "Changes detected in PKGBUILD, .SRCINFO, or .last_build_commit"
-            git diff --name-only PKGBUILD .SRCINFO .last_build_commit
+            echo "Changes detected in PKGBUILD or .SRCINFO"
+            git diff --name-only PKGBUILD .SRCINFO
           fi
 
       - name: Commit and push changes
@@ -98,7 +93,7 @@ jobs:
           git config --local user.name "GitHub Action"
 
           # Add and commit changes
-          git add PKGBUILD .SRCINFO .last_build_commit
+          git add PKGBUILD .SRCINFO
 
           NEW_PKGVER=$(grep '^pkgver=' PKGBUILD | cut -d'=' -f2)
           LATEST_HASH="${{ steps.gitlab-hash.outputs.latest_hash }}"

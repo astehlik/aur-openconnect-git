@@ -39,7 +39,7 @@ pkgbase = openconnect-git
 	provides = libopenconnect.so
 	conflicts = openconnect
 	options = !emptydirs
-	source = openconnect-git::git+https://gitlab.com/openconnect/openconnect.git#branch=master
+	source = openconnect-git::git+https://gitlab.com/openconnect/openconnect.git#commit=06afc42b2fd8c2f3b8769e14a81356a139ea27a6
 	sha256sums = SKIP
 
 pkgname = openconnect-git
