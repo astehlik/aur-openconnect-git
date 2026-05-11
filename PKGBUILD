@@ -6,7 +6,7 @@
 
 pkgname=openconnect-git
 pkgver=9.12.r265.ga7e7514
-pkgrel=1
+pkgrel=2
 epoch=1
 pkgdesc='Open client for Cisco AnyConnect VPN'
 url='https://www.infradead.org/openconnect/'
