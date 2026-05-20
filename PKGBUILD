@@ -5,8 +5,8 @@
 # Contributor: Felix Yan <felixonmars@archlinux.org>
 
 pkgname=openconnect-git
-pkgver=9.12.r265.ga7e7514
-pkgrel=2
+pkgver=9.12.r268.ga79c24e
+pkgrel=1
 epoch=1
 pkgdesc='Open client for Cisco AnyConnect VPN'
 url='https://www.infradead.org/openconnect/'
@@ -24,7 +24,7 @@ optdepends=('python: tncc-wrapper')
 provides=("openconnect=${pkgver%.r*}" 'libopenconnect.so')
 conflicts=('openconnect')
 options=('!emptydirs')
-_commithash=a7e751442e0e4bb8e3f18965960b1428e1a26bbc
+_commithash=a79c24e3d4c0b013106b8938ae2ecee25101f34b
 source=("$pkgname::git+https://gitlab.com/openconnect/openconnect.git#commit=${_commithash}")
 sha256sums=('SKIP')
 
