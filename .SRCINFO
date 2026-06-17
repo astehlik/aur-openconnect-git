@@ -1,6 +1,6 @@
 pkgbase = openconnect-git
 	pkgdesc = Open client for Cisco AnyConnect VPN
-	pkgver = 9.12.r270.g549fd2d
+	pkgver = 9.21.r0.g8b702bf
 	pkgrel = 1
 	epoch = 1
 	url = https://www.infradead.org/openconnect/
@@ -35,11 +35,11 @@ pkgbase = openconnect-git
 	depends = libgssapi_krb5.so
 	depends = libpcsclite.so
 	optdepends = python: tncc-wrapper
-	provides = openconnect=9.12
+	provides = openconnect=9.21
 	provides = libopenconnect.so
 	conflicts = openconnect
 	options = !emptydirs
-	source = openconnect-git::git+https://gitlab.com/openconnect/openconnect.git#commit=549fd2d6c4606304e16e222e31b15c15d50e7729
+	source = openconnect-git::git+https://gitlab.com/openconnect/openconnect.git#commit=8b702bf2dbaf11302ed98629214b1df5d50a12aa
 	sha256sums = SKIP
 
 pkgname = openconnect-git
